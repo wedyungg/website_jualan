@@ -31,14 +31,16 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            // Validasi Nomer WA (Wajib angka, minimal 10 digit, unik)
+            'nomer_wa' => ['required', 'numeric', 'digits_between:10,15', 'unique:'.User::class], 
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
+            'nomer_wa' => $request->nomer_wa, // Simpan ke kolom nomer_wa
             'password' => Hash::make($request->password),
+            'role' => 'customer', // Default role
         ]);
 
         event(new Registered($user));

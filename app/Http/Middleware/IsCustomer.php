@@ -1,5 +1,5 @@
 <?php
-// app/Http/Middleware/IsAdmin.php
+// app/Http/Middleware/IsCustomer.php
 
 namespace App\Http\Middleware;
 
@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class IsAdmin
+class IsCustomer
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -16,11 +16,11 @@ class IsAdmin
             return redirect()->route('login');
         }
         
-        // 🎯 CEK: Apakah user adalah admin?
-        if (Auth::user()->role !== 'admin') {
-            // Jika bukan admin, redirect ke customer dashboard
-            return redirect()->route('customer.dashboard')
-                ->with('error', 'Akses ditolak! Hanya untuk admin.');
+        // 🎯 CEK: Apakah user adalah customer?
+        if (Auth::user()->role !== 'customer') {
+            // Jika bukan customer, redirect ke admin dashboard
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'Halaman ini hanya untuk customer.');
         }
         
         return $next($request);

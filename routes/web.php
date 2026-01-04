@@ -1,73 +1,70 @@
 <?php
+// 🗺️ PETA DUNIA FOKUSKESINI
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Customer\CustomerController;
+use App\Http\Controllers\ProfileController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Di sinilah kamu mendaftarkan rute web untuk aplikasimu.
-| Rute-rute ini dimuat oleh RouteServiceProvider dan semuanya akan
-| dimasukkan ke dalam grup middleware "web".
-|
-*/
-
-// Halaman awal (Welcome page)
+// 🏠 HOME BASE
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Halaman Dashboard (Bisa diakses oleh SEMUA user yang sudah login & verifikasi email)
+// ⚡ PORTAL DASHBOARD (Auto-Detect Role)
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    if (!auth()->check()) {
+        return redirect('/login');
+    }
+    
+    $user = auth()->user();
+    
+    // 🎮 TELEPORT BERDASARKAN ROLE
+    if ($user->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    } else {
+        return redirect()->route('customer.dashboard');
+    }
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Grup rute untuk profil user (Bawaan Breeze)
-Route::middleware('auth')->group(function () {
+// ==================== 🏰 KERAJAAN ADMIN ====================
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    // 🎮 DASHBOARD ADMIN
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    
+    // ⚙️ PROFILE ADMIN
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-
-// ==========================================================
-//           RUTE TAMBAHAN UNTUK TUGAS E-BUSINESS
-// ==========================================================
-
-// GRUP 1: Rute untuk SEMUA USER (Admin & Customer)
-// Syarat: Harus login ('auth') dan email terverifikasi ('verified')
-Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Contoh: Halaman lihat pesanan saya
-    // URL: http://127.0.0.1:8000/my-orders
-    Route::get('/my-orders', function () {
-        // Nanti kamu bisa ganti ini dengan: return view('customer.orders');
-        return 'Halo! Ini adalah halaman pesanan Anda. (Bisa diakses Admin & Customer)';
-    })->name('orders.my');
-
+    // 🎯 NANTI TAMBAHKAN QUEST ADMIN LAINNYA:
+    // - Route::get('/users', 'UserController@index')->name('users');
+    // - Route::get('/reservations', 'ReservationController@index')->name('reservations');
 });
 
-
-// GRUP 2: Rute KHUSUS ADMIN
-// Syarat: Harus login ('auth'), email terverifikasi ('verified'), DAN role-nya admin ('is_admin')
-Route::middleware(['auth', 'verified', 'is_admin'])->group(function () {
+// ==================== 🏡 DESA CUSTOMER ====================
+Route::prefix('customer')->name('customer.')->middleware(['auth', 'customer'])->group(function () {
+    // 🎮 DASHBOARD CUSTOMER
+    Route::get('/dashboard', [CustomerController::class, 'dashboard'])->name('dashboard');
     
-    // Contoh: Dashboard khusus Admin
-    // URL: http://127.0.0.1:8000/admin/dashboard
-    Route::get('/admin/dashboard', function () {
-        // Nanti kamu bisa ganti ini dengan: return view('admin.dashboard');
-        return 'SELAMAT DATANG, ADMIN! Ini halaman rahasia Anda.';
-    })->name('admin.dashboard');
-
-    // Contoh: Halaman kelola produk
-    // URL: http://127.0.0.1:8000/admin/products
-    Route::get('/admin/products', function () {
-        return 'Halaman Admin untuk mengelola produk.';
-    })->name('admin.products');
-
+    // ⚙️ PROFILE CUSTOMER
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // 🎯 NANTI TAMBAHKAN QUEST CUSTOMER:
+    // - Route::get('/booking', 'BookingController@create')->name('booking.create');
+    // - Route::get('/history', 'HistoryController@index')->name('history');
 });
 
-// Memuat file rute autentikasi bawaan Breeze (login, register, dll)
+//packages
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    
+    // 📦 PASTIKAN INI ADA:
+    Route::resource('packages', \App\Http\Controllers\Admin\PackageController::class);
+    // ... lainnya
+});
+
+// ==================== 🔐 PORTAL AUTH ====================
 require __DIR__.'/auth.php';

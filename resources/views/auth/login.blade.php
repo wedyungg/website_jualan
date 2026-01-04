@@ -1,47 +1,101 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Login - Fokuskesini</title>
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+    <link href="{{ asset('sb-admin/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="{{ asset('sb-admin/css/sb-admin-2.min.css') }}" rel="stylesheet">
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+    <style>
+        .bg-gradient-primary {
+            background-color: #000000;
+            background-image: linear-gradient(180deg, #000000 10%, #333333 100%);
+            background-size: cover;
+            background-attachment: fixed;
+        }
+        .btn-dark-classy {
+            background-color: #000000;
+            border-color: #000000;
+            color: #ffffff;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .btn-dark-classy:hover {
+            background-color: #333333;
+            border-color: #333333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .small.text-secondary:hover {
+            color: #000000 !important;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-primary">
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12 col-md-9">
+                <div class="card o-hidden border-0 shadow-lg my-5" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-body p-0">
+                        <div class="row">
+                            <div class="col-lg-6 d-none d-lg-block" 
+                                 style="background-image: url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80');
+                                        background-position: center; background-size: cover; min-height: 500px;">
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <img src="{{ asset('sb-admin/img/logo.png') }}" alt="Logo" style="width: 180px; margin-bottom: 25px;">
+                                        <h1 class="h5 text-gray-900 mb-4" style="font-weight: 600;">Welcome Back!</h1>
+                                    </div>
+
+                                    <form class="user" method="POST" action="{{ route('login') }}">
+                                        @csrf
+                                        
+                                        <div class="form-group">
+                                            <input type="text" name="nomer_wa" class="form-control form-control-user"
+                                                placeholder="Masukkan Nomor WhatsApp (08xxx)" value="{{ old('nomer_wa') }}" required autofocus
+                                                style="border-radius: 10px; padding: 1.5rem 1rem;">
+                                            <x-input-error :messages="$errors->get('nomer_wa')" class="mt-2 text-danger small" />
+                                        </div>
+
+                                        <div class="form-group">
+                                            <input type="password" name="password" class="form-control form-control-user"
+                                                placeholder="Password" required
+                                                style="border-radius: 10px; padding: 1.5rem 1rem;">
+                                            <x-input-error :messages="$errors->get('password')" class="mt-2 text-danger small" />
+                                        </div>
+
+                                        <button type="submit" class="btn btn-dark-classy btn-user btn-block" style="border-radius: 10px; padding: 0.8rem;">
+                                            LOGIN
+                                        </button>
+                                    </form>
+                                    <hr>
+                                    <div class="text-center">
+                                        <a class="small text-secondary font-weight-bold" href="{{ route('register') }}">Belum punya akun? Daftar!</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+    <script src="{{ asset('sb-admin/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('sb-admin/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('sb-admin/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+    <script src="{{ asset('sb-admin/js/sb-admin-2.min.js') }}"></script>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+</body>
+</html>
