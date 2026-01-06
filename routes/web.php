@@ -1,14 +1,21 @@
 <?php
 // 🗺️ PETA DUNIA FOKUSKESINI
 
+use App\Models\Package;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Customer\CustomerController;
 use App\Http\Controllers\ProfileController;
 
+
 // 🏠 HOME BASE
 Route::get('/', function () {
-    return view('welcome');
+    // Mengambil data paket yang sudah kamu buat di admin (seperti Wisuda Hemat)
+    // Pastikan statusnya 'Active' agar muncul di halaman depan
+    $packages = Package::where('is_active', true)->get(); 
+
+    // Mengirim variabel $packages ke view welcome
+    return view('welcome', compact('packages'));
 });
 
 // ⚡ PORTAL DASHBOARD (Auto-Detect Role)
