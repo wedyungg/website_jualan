@@ -5,65 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>@yield('title', 'Fokuskesini - Luxury Photography')</title>
 
-    <!-- Font Modern: Plus Jakarta Sans (Sangat populer untuk desain modern 2026) -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="{{ asset('sb-admin/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ asset('sb-admin/css/sb-admin-2.min.css') }}" rel="stylesheet">
 
     <style>
-        /* 🖤 Global Style */
+        /* 🖤 Global Style: Monochrome Luxury */
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif !important; 
             background-color: #ffffff; 
             color: #1a1a1a;
         }
 
-        /* 🧭 Navbar Luxury Hitam */
+        /* 🧭 Navbar: Deep Black & Sharp */
         .navbar-custom {
-            background-color: #000000 !important; /* Hitam Pekat */
-            padding: 20px 0;
+            background-color: #000000 !important;
+            padding: 10px 0; /* Luwih slim ben elegan */
             transition: all 0.3s;
         }
         
-        /* 🖼️ LOGO MAGIC: Mengubah logo hitam menjadi putih agar terlihat di background gelap */
         .navbar-brand img {
-            height: 45px; /* Ukuran logo pas */
-            filter: invert(1) brightness(100%); /* Mantra pengubah warna */
+            height: 40px;
+            filter: invert(1) brightness(100%);
         }
 
-        .nav-link {
-            font-weight: 500;
-            color: rgba(255,255,255,0.7) !important;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
+        /* 🔘 Dropdown Trigger: Nama User */
+        .nav-link.dropdown-toggle {
+            font-weight: 700;
+            color: #ffffff !important;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
             text-transform: uppercase;
+            padding: 20px !important;
         }
-        .nav-link:hover { color: #ffffff !important; }
 
-        /* 🔘 Tombol Outline Putih (Sangat Mewah) */
+        /* 📦 Dropdown Box: Shopee Style (Manunggal) */
+        .dropdown-menu {
+            border-radius: 0 !important; /* Siku Tajam */
+            border: 1px solid #ffffff !important; /* Garis pemisah putih tipis */
+            padding: 0;
+            margin-top: 0 !important; /* Nempel persis neng ngisor trigger */
+            background-color: #000000;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            min-width: 200px;
+        }
+
+        .dropdown-item {
+            padding: 15px 25px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7) !important;
+            transition: 0.3s;
+            background-color: #000;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Hover Effect: Invert Color */
+        .dropdown-item:hover {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+
+        .dropdown-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Luxury Button (Non-Auth) */
         .btn-luxury-nav {
             border: 1px solid rgba(255,255,255,0.3);
             color: #fff !important;
             padding: 8px 25px;
-            border-radius: 0; /* Kotak tegas */
+            border-radius: 0;
             text-transform: uppercase;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             letter-spacing: 1px;
             transition: all 0.3s;
         }
         .btn-luxury-nav:hover {
             background-color: #fff;
             color: #000 !important;
-            border-color: #fff;
         }
     </style>
 </head>
 <body>
 
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top shadow-sm">
         <div class="container">
-            <!-- LOGO FOKUSKESINI -->
             <a class="navbar-brand" href="{{ url('/') }}">
                 <img src="{{ asset('sb-admin/img/logo.png') }}" alt="FOKUSKESINI">
             </a>
@@ -74,13 +108,34 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link px-3" href="{{ url('/') }}">Beranda</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="#katalog">Katalog</a></li>
                     @auth
-                        <li class="nav-item ml-lg-3">
-                            <a class="btn btn-luxury-nav" href="{{ auth()->user()->role == 'admin' ? route('admin.dashboard') : url('/customer/dashboard') }}">
-                                Akun Saya
+                        <li class="nav-item dropdown ml-lg-3">
+                            <a class="nav-link dropdown-toggle font-weight-bold" href="#" id="userMenu" role="button" data-toggle="dropdown">
+                                <i class="fas fa-user-circle mr-2"></i> {{ Auth::user()->name }}
                             </a>
+                            
+                            <div class="dropdown-menu dropdown-menu-right">
+                                @if(Auth::user()->role == 'admin')
+                                    <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                        <i class="fas fa-tachometer-alt mr-2"></i> Dashboard Admin
+                                    </a>
+                                @endif
+
+                                <a class="dropdown-item" href="{{ route(auth()->user()->role . '.profile.edit') }}">
+                                    <i class="fas fa-user mr-2"></i> Akun Saya
+                                </a>
+                                
+                                <a class="dropdown-item" href="{{ route('customer.orders') }}">
+                                    <i class="fas fa-shopping-bag mr-2"></i> Pesanan Saya
+                                </a>
+
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-left" style="cursor:pointer;">
+                                        <i class="fas fa-sign-out-alt mr-2"></i> Keluar
+                                    </button>
+                                </form>
+                            </div>
                         </li>
                     @else
                         <li class="nav-item ml-lg-3">
@@ -92,20 +147,18 @@
         </div>
     </nav>
 
-    <!-- Wrapper Konten -->
     <main style="margin-top: 85px;"> 
         @yield('content')
     </main>
 
-    <!-- Footer Simple -->
     <footer class="py-5 bg-black text-white text-center mt-5" style="background: #000;">
         <div class="container">
-            <img src="{{ asset('sb-admin/img/logo.png') }}" alt="Logo" style="height: 30px; filter: invert(1); margin-bottom: 20px; opacity: 0.5;">
-            <p class="small text-muted mb-0 text-uppercase" style="letter-spacing: 2px;">&copy; {{ date('Y') }} Fokuskesini. All Rights Reserved.</p>
+            <p class="small text-muted mb-0 text-uppercase" style="letter-spacing: 2px;">
+                &copy; {{ date('Y') }} Fokuskesini. Professional Photography.
+            </p>
         </div>
     </footer>
 
-    <!-- Scripts -->
     <script src="{{ asset('sb-admin/vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('sb-admin/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 </body>

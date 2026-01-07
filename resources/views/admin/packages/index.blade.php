@@ -68,7 +68,7 @@
                                 </span>
                             </td>
                             <td class="align-middle text-center font-weight-bold">
-                                Rp {{ number_format($package->price, 0, ',', '.') }}
+                                Rp. {{ number_format($package->price, 0, ',', '.') }}
                             </td>
                             <td class="align-middle text-center">
                                 @if($package->is_active)

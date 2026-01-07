@@ -31,6 +31,15 @@ Route::get('/', function () {
     return view('welcome', compact('categories'));
 })->name('home');
 
+// --- FITUR BOOKING / CHECKOUT (Kudu Login) ---
+Route::middleware(['auth'])->group(function () {
+    // Menampilkan halaman form pemesanan
+    Route::get('/checkout/{package}', [App\Http\Controllers\BookingController::class, 'checkout'])->name('checkout');
+    
+    // Proses menyimpan data pemesanan
+    Route::post('/checkout', [App\Http\Controllers\BookingController::class, 'store'])->name('checkout.store');
+});
+
 /**
  * 2. Daftar Paket per Kategori
  * Menampilkan semua paket yang ada di dalam kategori tertentu.
@@ -102,6 +111,10 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'customer'])->
     
     // Rencana Fitur Mendatang:
     // Route::get('/my-bookings', [BookingController::class, 'index'])->name('bookings.index');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/my-orders', [App\Http\Controllers\BookingController::class, 'index'])->name('customer.orders');
 });
 
 

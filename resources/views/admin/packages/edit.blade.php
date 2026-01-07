@@ -1,101 +1,73 @@
 @extends('admin.layouts.master')
 
-@section('title', 'Edit Package - Fokuskesini')
+@section('title', 'Edit Package — Fokuskesini')
 
 @section('content')
 <div class="container-fluid">
-    
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-edit"></i> Edit Package: {{ $package->name }}
-        </h1>
-        <a href="{{ route('admin.packages.index') }}" class="btn btn-outline-dark">
-            <i class="fas fa-arrow-left"></i> Back to List
-        </a>
+        <h1 class="h4 mb-0 text-dark font-weight-bold text-uppercase" style="letter-spacing: 2px;">Edit Package</h1>
+        <a href="{{ route('admin.packages.index') }}" class="btn btn-outline-dark" style="border-radius: 0;">Back to List</a>
     </div>
-    
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Edit Package Details</h6>
-        </div>
-        <div class="card-body">
-            <form action="{{ route('admin.packages.update', $package) }}" method="POST" enctype="multipart/form-data">
-                @csrf @method('PUT')
-                
+
+    <div class="card border-0 shadow-none" style="border-radius: 0; border: 1px solid #eeeeee !important;">
+        <div class="card-body p-5">
+            <form action="{{ route('admin.packages.update', $package->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="name">Package Name *</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                                   id="name" name="name" value="{{ old('name', $package->name) }}" required>
-                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-group mb-4">
+                            <label class="small text-uppercase font-weight-bold" style="letter-spacing: 1px;">Package Name</label>
+                            <input type="text" name="name" class="form-control" style="border-radius: 0; border: 1px solid #000;" value="{{ $package->name }}" required>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="price">Price (IDR) *</label>
-                            <input type="number" class="form-control @error('price') is-invalid @enderror" 
-                                   id="price" name="price" value="{{ old('price', $package->price) }}" required>
-                            @error('price')<div class="invalid-feedback">{{ $message }}</div>@enderror
+
+                        <div class="form-group mb-4">
+                            <label class="small text-uppercase font-weight-bold" style="letter-spacing: 1px;">Category</label>
+                            <select name="category" class="form-control" style="border-radius: 0; border: 1px solid #000;" required>
+                                <option value="WEDDING" {{ $package->category == 'WEDDING' ? 'selected' : '' }}>WEDDING</option>
+                                <option value="GRADUATION" {{ $package->category == 'GRADUATION' ? 'selected' : '' }}>GRADUATION</option>
+                                <option value="ENGAGEMENT" {{ $package->category == 'ENGAGEMENT' ? 'selected' : '' }}>ENGAGEMENT</option>
+                                <option value="MATERNITY" {{ $package->category == 'MATERNITY' ? 'selected' : '' }}>MATERNITY</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="small text-uppercase font-weight-bold" style="letter-spacing: 1px;">Price (IDR)</label>
+                            <input type="number" name="price" class="form-control" style="border-radius: 0; border: 1px solid #000;" value="{{ $package->price }}" required>
                         </div>
                     </div>
-                    
+
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="duration_hours">Duration (hours) *</label>
-                            <input type="number" class="form-control @error('duration_hours') is-invalid @enderror" 
-                                   id="duration_hours" name="duration_hours" 
-                                   value="{{ old('duration_hours', $package->duration_hours) }}" required>
-                            @error('duration_hours')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-group mb-4">
+                            <label class="small text-uppercase font-weight-bold" style="letter-spacing: 1px;">Duration (Hours)</label>
+                            <input type="number" name="duration_hours" class="form-control" style="border-radius: 0; border: 1px solid #000;" value="{{ $package->duration_hours }}" required>
                         </div>
-                        
-                        <div class="form-group">
-                            <label>Status</label>
+
+                        <div class="form-group mb-4">
+                            <label class="small text-uppercase font-weight-bold" style="letter-spacing: 1px;">Cover Image (Keep empty if no change)</label>
+                            <input type="file" name="cover_image" class="form-control-file mb-2">
+                            @if($package->cover_image)
+                                <img src="{{ asset('storage/' . $package->cover_image) }}" style="height: 100px; border: 1px solid #ddd;">
+                            @endif
+                        </div>
+
+                        <div class="form-group mb-4 mt-4">
                             <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" 
-                                       id="is_active" name="is_active" value="1" 
-                                       {{ $package->is_active ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="is_active">Active</label>
+                                <input type="checkbox" name="is_active" class="custom-control-input" id="activeSwitch" {{ $package->is_active ? 'checked' : '' }}>
+                                <label class="custom-control-label small text-uppercase font-weight-bold" for="activeSwitch">Active Status</label>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="description">Description *</label>
-                    <textarea class="form-control @error('description') is-invalid @enderror" 
-                              id="description" name="description" rows="4" required>{{ old('description', $package->description) }}</textarea>
-                    @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                
-                <div class="form-group">
-                    <label for="features">Features (One per line)</label>
-                    <textarea class="form-control @error('features') is-invalid @enderror" 
-                              id="features" name="features" rows="5">{{ old('features', $package->features ? implode("\n", $package->features) : '') }}</textarea>
-                    @error('features')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                
-                <div class="form-group">
-                    <label for="cover_image">Cover Image</label>
-                    @if($package->cover_image)
-                    <div class="mb-2">
-                        <img src="{{ asset('storage/' . $package->cover_image) }}" 
-                             alt="Current cover" style="max-height: 150px;" class="rounded border">
-                        <p class="small text-muted mt-1">Current image</p>
+
+                    <div class="col-12 mt-3">
+                        <button type="submit" class="btn btn-dark btn-block py-3 font-weight-bold text-uppercase" style="border-radius: 0; background: #000; letter-spacing: 2px;">
+                            Save Changes
+                        </button>
                     </div>
-                    @endif
-                    <input type="file" class="form-control-file" id="cover_image" name="cover_image">
-                    <small class="form-text text-muted">Leave empty to keep current image</small>
                 </div>
-                
-                <div class="form-group text-right">
-                    <button type="submit" class="btn btn-dark-classy">
-                        <i class="fas fa-save"></i> Update Package
-                    </button>
-                </div>
-                
             </form>
         </div>
     </div>
-    
 </div>
 @endsection

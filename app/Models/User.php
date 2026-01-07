@@ -30,24 +30,4 @@ class User extends Authenticatable
         ];
     }
 
-    // =============== FIX DISINI ===============
-    
-    // FIX 2.1: Override method untuk set identifier ke nomer_wa
-    public function getAuthIdentifierName()
-    {
-        return 'nomer_wa';
-    }
-    
-    // FIX 2.2: Override method untuk password reset (opsional tapi baik)
-    public function getEmailForPasswordReset()
-    {
-        return $this->nomer_wa;
-    }
-    
-    // FIX 2.3: Tambahkan ini untuk compatibility
-    public function getAuthIdentifier()
-    {
-        return $this->nomer_wa;
-    }
-    // ==========================================
 }
