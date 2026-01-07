@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 class PackageController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Menampilkan daftar semua paket fotografi.
      */
     public function index()
     {
@@ -19,7 +19,7 @@ class PackageController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Menampilkan formulir tambah paket baru.
      */
     public function create()
     {
@@ -27,13 +27,14 @@ class PackageController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Menyimpan paket baru ke dalam database.
      */
     public function store(Request $request)
     {
-        // Validasi
+        // Validasi data masukan
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category' => 'required|string',
             'price' => 'required|numeric|min:0',
             'description' => 'required|string',
             'duration_hours' => 'required|integer|min:1',
@@ -42,7 +43,7 @@ class PackageController extends Controller
             'is_active' => 'boolean'
         ]);
         
-        // Handle features (convert from textarea to array)
+        // Mengolah fitur (konversi dari baris baru di textarea menjadi array)
         if ($request->has('features') && !empty($request->features)) {
             $features = array_filter(
                 explode("\n", $request->features),
@@ -53,24 +54,24 @@ class PackageController extends Controller
             $validated['features'] = $features;
         }
         
-        // Handle image upload
+        // Mengelola unggahan gambar cover
         if ($request->hasFile('cover_image')) {
             $path = $request->file('cover_image')->store('packages', 'public');
             $validated['cover_image'] = $path;
         }
         
-        // Default is_active to true if not set
+        // Mengatur status aktif secara otomatis
         $validated['is_active'] = $request->has('is_active');
         
-        // Create package
+        // Simpan data paket
         Package::create($validated);
         
         return redirect()->route('admin.packages.index')
-            ->with('success', 'Package created successfully!');
+            ->with('success', 'Paket fotografi baru berhasil ditambahkan.');
     }
 
     /**
-     * Display the specified resource.
+     * Menampilkan detail paket (Opsional).
      */
     public function show(Package $package)
     {
@@ -78,7 +79,7 @@ class PackageController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Menampilkan formulir ubah paket.
      */
     public function edit(Package $package)
     {
@@ -86,7 +87,7 @@ class PackageController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Memperbarui data paket di database.
      */
     public function update(Request $request, Package $package)
     {
@@ -100,7 +101,7 @@ class PackageController extends Controller
             'is_active' => 'boolean'
         ]);
         
-        // Handle features
+        // Mengolah kembali fitur
         if ($request->has('features') && !empty($request->features)) {
             $features = array_filter(
                 explode("\n", $request->features),
@@ -113,9 +114,9 @@ class PackageController extends Controller
             $validated['features'] = null;
         }
         
-        // Handle image upload
+        // Mengelola perubahan gambar cover
         if ($request->hasFile('cover_image')) {
-            // Delete old image if exists
+            // Hapus gambar lama jika ada untuk menghemat memori
             if ($package->cover_image) {
                 Storage::disk('public')->delete($package->cover_image);
             }
@@ -123,7 +124,7 @@ class PackageController extends Controller
             $path = $request->file('cover_image')->store('packages', 'public');
             $validated['cover_image'] = $path;
         } else {
-            // Keep existing image
+            // Tetap gunakan gambar yang sudah ada
             $validated['cover_image'] = $package->cover_image;
         }
         
@@ -132,15 +133,15 @@ class PackageController extends Controller
         $package->update($validated);
         
         return redirect()->route('admin.packages.index')
-            ->with('success', 'Package updated successfully!');
+            ->with('success', 'Perubahan data paket berhasil disimpan.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Menghapus paket secara permanen.
      */
     public function destroy(Package $package)
     {
-        // Delete image if exists
+        // Hapus file gambar dari storage sebelum menghapus record database
         if ($package->cover_image) {
             Storage::disk('public')->delete($package->cover_image);
         }
@@ -148,6 +149,6 @@ class PackageController extends Controller
         $package->delete();
         
         return redirect()->route('admin.packages.index')
-            ->with('success', 'Package deleted successfully!');
+            ->with('success', 'Paket fotografi berhasil dihapus secara permanen.');
     }
 }

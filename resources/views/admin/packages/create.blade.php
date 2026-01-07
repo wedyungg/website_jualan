@@ -41,6 +41,22 @@
                             @enderror
                         </div>
                         
+                        <!-- Category -->
+                         <div class="form-group mb-4">
+    <label class="small text-uppercase font-weight-bold" style="letter-spacing: 1px;">Kategori Paket</label>
+    <select name="category" class="form-control" style="border-radius: 0; border: 1px solid #000;" required>
+        <option value="" selected disabled>— Pilih Kategori —</option>
+        <option value="WEDDING">WEDDING</option>
+        <option value="WISUDA">WISUDA</option>
+        <option value="ENGAGEMENT">ENGAGEMENT</option>
+        <option value="MATERNITY">MATERNITY</option>
+        <option value="FAMILY">FAMILY</option>
+    </select>
+    @error('category')
+        <small class="text-danger">{{ $message }}</small>
+    @enderror
+</div>
+                        
                         <!-- Price -->
                         <div class="form-group">
                             <label for="price" class="font-weight-bold">Price (IDR) *</label>
