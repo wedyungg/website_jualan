@@ -9,10 +9,10 @@ class Package extends Model
 {
     use HasFactory;
 
-    // PERBAIKAN: Tambahkan 'category' ke fillable
+    // Kolom sing entuk diisi (Mass Assignment)
     protected $fillable = [
         'name',
-        'category', // PASTIKAN INI ADA
+        'category',
         'price',
         'description',
         'duration_hours',
@@ -21,10 +21,19 @@ class Package extends Model
         'is_active'
     ];
 
-    // PERBAIKAN: Casting untuk tipe data
+    /**
+     * Relasi: Siji paket duwe akeh booking
+     * Iki mau sing kleru mergo jeneng fungsine ilang
+     */
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    // Casting tipe data supaya Laravel otomatis ngerubah dadi array utawa boolean
     protected $casts = [
         'is_active' => 'boolean',
         'price' => 'decimal:2',
-        'features' => 'array' // Karena kolomnya json
+        'features' => 'array' // Fitur bakal dadi array soko JSON neng database
     ];
 }

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
@@ -22,25 +22,32 @@ class Booking extends Model
         'whatsapp_sent_at'
     ];
 
+    /**
+     * Relasi: Siji booking duweke siji paket
+     */
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
+    }
+
+    /**
+     * Relasi: Siji booking duweke siji user
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // Casting kanggo standarisasi tipe data neng Laravel
     protected $casts = [
         'booking_date' => 'date',
         'total_price' => 'decimal:2',
         'whatsapp_sent' => 'boolean'
     ];
 
-    // Relasi dengan user
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    // Relasi dengan package
-    public function package()
-    {
-        return $this->belongsTo(Package::class);
-    }
-
-    // Scope untuk status
+    /**
+     * Scope kanggo nggampangke nggoleki booking sing status-e pending
+     */
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
