@@ -121,9 +121,9 @@
                                     </a>
                                 @endif
 
-                                <a class="dropdown-item" href="{{ route(auth()->user()->role . '.profile.edit') }}">
-                                    <i class="fas fa-user mr-2"></i> Akun Saya
-                                </a>
+                                <a class="dropdown-item" href="{{ route('profile.edit') }}">
+    <i class="fas fa-user mr-2"></i> Akun Saya
+</a>
                                 
                                 <a class="dropdown-item" href="{{ route('customer.orders') }}">
                                     <i class="fas fa-shopping-bag mr-2"></i> Pesanan Saya

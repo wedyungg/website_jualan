@@ -1,71 +1,85 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers; // 🛠️ Iki alamate, ojo nganti ilang
 
 use App\Models\Package;
 use App\Models\Booking;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
-class BookingController extends Controller
+class BookingController extends Controller // 🛠️ Iki jeneng kelase
 {
     /**
-     * 1. MENAMPILKAN DAFTAR PESANAN SAYA (SHOPEE STYLE)
-     * Halaman ini akan menampilkan riwayat pesanan user yang sedang login.
+     * Menampilkan daftar pesanan milik user yang sedang login
      */
     public function index()
     {
-        // Jupuk data booking duweke user sing lagi login wae, urut soko sing paling anyar
-        $bookings = Booking::where('user_id', auth()->user()->id)
-                            ->latest()
-                            ->get();
-
-        // Nampilke view 'customer.orders' (Mengko awake dhewe gawe file iki)
+        $bookings = Booking::where('user_id', auth()->id())
+                           ->with('package')
+                           ->latest()
+                           ->get();
+        
         return view('customer.orders', compact('bookings'));
     }
 
     /**
-     * 2. HALAMAN FORM CHECKOUT
-     * Menampilkan formulir checkout untuk paket yang dipilih.
+     * Menampilkan halaman checkout untuk paket yang dipilih
      */
     public function checkout(Package $package)
     {
-        return view('checkout', compact('package'));
+        // 🛠️ Cek nek paket ora aktif, balekke wae
+        if (!$package->is_active) {
+            return redirect()->route('home')->with('error', 'Paket tidak tersedia.');
+        }
+        
+        // Mlayu neng view customer.checkout
+        return view('customer.checkout', compact('package'));
     }
 
     /**
-     * 3. PROSES PENYIMPANAN DATA (EKSEKUSI)
-     * Menyimpan data booking baru ke database.
+     * Menyimpan data booking baru ke database
      */
     public function store(Request $request)
     {
-        // A. Validasi inputan ben ora diisi sembarangan
-        $request->validate([
+        $validated = $request->validate([
             'package_id'   => 'required|exists:packages,id',
-            'booking_date' => 'required|date|after:today', // Anti tanggal wingi
+            'booking_date' => 'required|date|after_or_equal:today',
             'booking_time' => 'required',
             'location'     => 'required|string|max:500',
-            'notes'        => 'nullable|string',
+            'notes'        => 'nullable|string|max:1000',
         ]);
 
-        // B. Jupuk data paket ben ngerti regane saiki
-        $package = Package::findOrFail($request->package_id);
+        $package = Package::findOrFail($validated['package_id']);
 
-        // C. Simpen neng database (SOLUSI FOREIGN KEY ERROR WINGI)
-        Booking::create([
-            'user_id'      => auth()->user()->id, // Iki wis bener, njupuk ID angka (1,2,3)
+        $booking = Booking::create([
+            'user_id'      => auth()->id(),
             'package_id'   => $package->id,
-            'booking_date' => $request->booking_date,
-            'booking_time' => $request->booking_time,
-            'location'     => $request->location,
-            'notes'        => $request->notes,
-            'total_price'  => $package->price, // Kunci rega pas transaksi
-            'status'       => 'pending',       // Status awal: Menunggu Konfirmasi
+            'booking_date' => $validated['booking_date'],
+            'booking_time' => $validated['booking_time'],
+            'location'     => $validated['location'],
+            'notes'        => $validated['notes'] ?? null,
+            'total_price'  => $package->price,
+            'status'       => 'pending',
         ]);
 
-        // D. Redirect neng halaman "Pesanan Saya" (Shopee Style)
-        // Dudu neng dashboard meneh, ben ora bingung ndelok angka 0.
         return redirect()->route('customer.orders')
-            ->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
+                         ->with('success', 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi admin.');
+    }
+
+    /**
+     * Membatalkan pesanan (status: cancelled)
+     */
+    public function cancel(Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+        
+        if ($booking->status !== 'pending') {
+            return back()->with('error', 'Pesanan tidak dapat dibatalkan karena sudah diproses.');
+        }
+        
+        $booking->update(['status' => 'cancelled']);
+        
+        return back()->with('success', 'Pesanan berhasil dibatalkan.');
     }
 }

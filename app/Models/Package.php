@@ -2,32 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Package extends Model
 {
     use HasFactory;
 
+    // PERBAIKAN: Tambahkan 'category' ke fillable
     protected $fillable = [
         'name',
+        'category', // PASTIKAN INI ADA
         'price',
         'description',
-        'cover_image',
         'duration_hours',
+        'cover_image',
         'features',
         'is_active'
     ];
 
+    // PERBAIKAN: Casting untuk tipe data
     protected $casts = [
-        'features' => 'array',
         'is_active' => 'boolean',
-        'price' => 'decimal:2'
+        'price' => 'decimal:2',
+        'features' => 'array' // Karena kolomnya json
     ];
-
-    // Relasi dengan bookings
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class);
-    }
 }

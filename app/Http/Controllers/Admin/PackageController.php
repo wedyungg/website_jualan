@@ -34,14 +34,17 @@ class PackageController extends Controller
         // Validasi data masukan
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'required|string',
+            'category' => 'required|in:WEDDING,GRADUATION,ENGAGEMENT,MATERNITY', // PERBAIKAN: tambah validasi 'in'
             'price' => 'required|numeric|min:0',
             'description' => 'required|string',
             'duration_hours' => 'required|integer|min:1',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'features' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'nullable|boolean' // PERBAIKAN: nullable agar tidak error
         ]);
+        
+        // PERBAIKAN: Konversi checkbox is_active
+        $validated['is_active'] = $request->has('is_active') ? true : false;
         
         // Mengolah fitur (konversi dari baris baru di textarea menjadi array)
         if ($request->has('features') && !empty($request->features)) {
@@ -60,22 +63,11 @@ class PackageController extends Controller
             $validated['cover_image'] = $path;
         }
         
-        // Mengatur status aktif secara otomatis
-        $validated['is_active'] = $request->has('is_active');
-        
         // Simpan data paket
         Package::create($validated);
         
         return redirect()->route('admin.packages.index')
             ->with('success', 'Paket fotografi baru berhasil ditambahkan.');
-    }
-
-    /**
-     * Menampilkan detail paket (Opsional).
-     */
-    public function show(Package $package)
-    {
-        return view('admin.packages.show', compact('package'));
     }
 
     /**
@@ -91,47 +83,59 @@ class PackageController extends Controller
      */
     public function update(Request $request, Package $package)
     {
+        // ==================== PERBAIKAN UTAMA DI SINI ====================
+        
+        // 1. Validasi data - FIX VALIDASI CATEGORY DAN IS_ACTIVE
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'category' => 'required|in:WEDDING,GRADUATION,ENGAGEMENT,MATERNITY', // PERBAIKAN 1: Validasi ketat dengan 'in'
             'price' => 'required|numeric|min:0',
-            'description' => 'required|string',
+            'description' => 'nullable|string', 
             'duration_hours' => 'required|integer|min:1',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'features' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'nullable' // PERBAIKAN 2: Ubah jadi nullable, nanti kita proses manual
         ]);
         
-        // Mengolah kembali fitur
+        // PERBAIKAN 3: Konversi checkbox is_active menjadi boolean
+        // Checkbox HTML: jika dicentang = 'on', jika tidak dicentang = null/tidak ada
+        $validated['is_active'] = $request->has('is_active') ? true : false;
+        
+        // PERBAIKAN 4: Pastikan category tidak null setelah validasi
+        if (!isset($validated['category']) || empty($validated['category'])) {
+            return back()->withErrors(['category' => 'Kategori harus dipilih'])->withInput();
+        }
+        
+        // 2. Olah Fitur (dari textarea menjadi array)
         if ($request->has('features') && !empty($request->features)) {
-            $features = array_filter(
-                explode("\n", $request->features),
-                function($line) {
-                    return trim($line) !== '';
-                }
-            );
+            $features = array_filter(explode("\n", $request->features), function($line) {
+                return trim($line) !== '';
+            });
             $validated['features'] = $features;
         } else {
             $validated['features'] = null;
         }
         
-        // Mengelola perubahan gambar cover
+        // 3. Olah Gambar (hapus yang lama jika ganti yang baru)
         if ($request->hasFile('cover_image')) {
-            // Hapus gambar lama jika ada untuk menghemat memori
-            if ($package->cover_image) {
+            // Hapus gambar lama jika ada
+            if ($package->cover_image && Storage::disk('public')->exists($package->cover_image)) {
                 Storage::disk('public')->delete($package->cover_image);
             }
-            
-            $path = $request->file('cover_image')->store('packages', 'public');
-            $validated['cover_image'] = $path;
+            // Simpan gambar baru
+            $validated['cover_image'] = $request->file('cover_image')->store('packages', 'public');
         } else {
-            // Tetap gunakan gambar yang sudah ada
+            // Pertahankan gambar lama
             $validated['cover_image'] = $package->cover_image;
         }
         
-        $validated['is_active'] = $request->has('is_active');
+        // PERBAIKAN 5: Debugging - lihat data sebelum diupdate
+        // dd($validated); // Uncomment jika ingin lihat data
         
+        // 4. Update ke Database
         $package->update($validated);
         
+        // 5. Redirect dengan pesan sukses
         return redirect()->route('admin.packages.index')
             ->with('success', 'Perubahan data paket berhasil disimpan.');
     }
@@ -141,7 +145,6 @@ class PackageController extends Controller
      */
     public function destroy(Package $package)
     {
-        // Hapus file gambar dari storage sebelum menghapus record database
         if ($package->cover_image) {
             Storage::disk('public')->delete($package->cover_image);
         }
@@ -149,6 +152,6 @@ class PackageController extends Controller
         $package->delete();
         
         return redirect()->route('admin.packages.index')
-            ->with('success', 'Paket fotografi berhasil dihapus secara permanen.');
+            ->with('success', 'Paket fotografi berhasil dihapus.');
     }
 }

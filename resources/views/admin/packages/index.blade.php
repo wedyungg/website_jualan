@@ -48,35 +48,28 @@
                         <tr>
                             <td class="align-middle pl-4 text-muted small">#{{ $package->id }}</td>
                             <td class="align-middle">
-                                @if($package->cover_image)
-                                <img src="{{ asset('storage/' . $package->cover_image) }}" 
-                                     alt="{{ $package->name }}" 
-                                     style="width: 70px; height: 50px; object-fit: cover; border-radius: 0; border: 1px solid #eee;">
-                                @else
-                                <div style="width: 70px; height: 50px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-camera text-muted small"></i>
-                                </div>
-                                @endif
-                            </td>
-                            <td class="align-middle">
-                                <div class="font-weight-bold">{{ $package->name }}</div>
-                                <div class="small text-muted" style="font-size: 0.7rem;">{{ $package->duration_hours }} Hours Session</div>
-                            </td>
-                            <td class="align-middle text-center">
-                                <span class="badge badge-light border text-uppercase" style="border-radius: 0; font-size: 0.65rem; letter-spacing: 1px; padding: 5px 10px;">
-                                    {{ $package->category ?? 'UNSET' }}
-                                </span>
-                            </td>
-                            <td class="align-middle text-center font-weight-bold">
-                                Rp. {{ number_format($package->price, 0, ',', '.') }}
-                            </td>
-                            <td class="align-middle text-center">
-                                @if($package->is_active)
-                                <span class="badge badge-dark" style="border-radius: 0; font-size: 0.6rem; padding: 5px 10px;">ACTIVE</span>
-                                @else
-                                <span class="badge badge-light border text-muted" style="border-radius: 0; font-size: 0.6rem; padding: 5px 10px;">INACTIVE</span>
-                                @endif
-                            </td>
+    @if($package->cover_image)
+        <?php
+        // Hapus 'packages/' dari awal string jika ada
+        $imagePath = $package->cover_image;
+        if (strpos($imagePath, 'packages/') === 0) {
+            $imagePath = substr($imagePath, 9); // Hapus 'packages/'
+        }
+        ?>
+        
+        <!-- DEBUG: Tampilkan info -->
+        <small class="text-muted d-block">{{ $imagePath }}</small>
+        
+        <!-- Akses langsung ke public/packages/ -->
+        <img src="{{ asset('packages/' . $imagePath) }}" 
+             alt="{{ $package->name }}" 
+             style="width: 70px; height: 50px; object-fit: cover; border: 1px solid #00f;">
+    @else
+        <div style="width: 70px; height: 50px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; border: 1px solid #eee;">
+            <i class="fas fa-camera text-muted small"></i>
+        </div>
+    @endif
+</td>
                             <td class="align-middle pr-4 text-right">
                                 <div class="btn-group">
                                     <a href="{{ route('admin.packages.edit', $package) }}" class="btn btn-sm btn-outline-dark" style="border-radius: 0;">
@@ -125,4 +118,6 @@
         }, 4000);
     });
 </script>
+
+
 @endsection

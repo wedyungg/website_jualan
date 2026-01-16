@@ -1,31 +1,23 @@
 <?php
-// 🏡 RUMAH CUSTOMER CONTROLLER
 
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Booking;
 
 class CustomerController extends Controller
 {
-    /**
-     * 🎮 Tampilkan Dashboard Customer
-     */
+    // Menampilkan halaman dashboard customer
     public function dashboard()
     {
-        return view('customer.dashboard', [
-            'title' => 'Selamat Datang di Fokuskesini!',
-            'user' => auth()->user(),
-            'role' => 'VIP Customer',
-            'welcome_message' => 'Siap untuk sesi foto yang epic?'
-        ]);
+        return view('customer.dashboard');
     }
-    
-    /**
-     * 📅 Booking Session (nanti)
-     */
-    public function booking()
+
+    // Menampilkan halaman daftar pesanan milik customer yang sedang login
+    public function orders()
     {
-        return "Coming soon: Booking system!";
+        $bookings = Booking::where('user_id', auth()->id())->get();
+        return view('customer.orders', compact('bookings'));
     }
 }

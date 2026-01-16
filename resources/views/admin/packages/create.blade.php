@@ -47,7 +47,7 @@
     <select name="category" class="form-control" style="border-radius: 0; border: 1px solid #000;" required>
         <option value="" selected disabled>— Pilih Kategori —</option>
         <option value="WEDDING">WEDDING</option>
-        <option value="WISUDA">WISUDA</option>
+        <option value="GRADUATION">GRADUATION</option>
         <option value="ENGAGEMENT">ENGAGEMENT</option>
         <option value="MATERNITY">MATERNITY</option>
         <option value="FAMILY">FAMILY</option>
