@@ -5,153 +5,126 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Package;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File; // 🛠️ Penting untuk manajemen file di folder public
 
 class PackageController extends Controller
 {
-    /**
-     * Menampilkan daftar semua paket fotografi.
-     */
     public function index()
     {
         $packages = Package::latest()->get();
         return view('admin.packages.index', compact('packages'));
     }
 
-    /**
-     * Menampilkan formulir tambah paket baru.
-     */
     public function create()
     {
         return view('admin.packages.create');
     }
 
-    /**
-     * Menyimpan paket baru ke dalam database.
-     */
     public function store(Request $request)
     {
-        // Validasi data masukan
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'required|in:WEDDING,GRADUATION,ENGAGEMENT,MATERNITY', // PERBAIKAN: tambah validasi 'in'
+            'category' => 'required|in:WEDDING,GRADUATION,ENGAGEMENT,MATERNITY',
             'price' => 'required|numeric|min:0',
             'description' => 'required|string',
             'duration_hours' => 'required|integer|min:1',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // 🛠️ Dibuat required saat buat paket
             'features' => 'nullable|string',
-            'is_active' => 'nullable|boolean' // PERBAIKAN: nullable agar tidak error
+            'is_active' => 'nullable'
         ]);
         
-        // PERBAIKAN: Konversi checkbox is_active
         $validated['is_active'] = $request->has('is_active') ? true : false;
         
-        // Mengolah fitur (konversi dari baris baru di textarea menjadi array)
+        // Olah Fitur (textarea ke array)
         if ($request->has('features') && !empty($request->features)) {
-            $features = array_filter(
-                explode("\n", $request->features),
-                function($line) {
-                    return trim($line) !== '';
-                }
-            );
-            $validated['features'] = $features;
+            $validated['features'] = array_filter(explode("\n", $request->features), function($line) {
+                return trim($line) !== '';
+            });
         }
         
-        // Mengelola unggahan gambar cover
+        // 🛠️ LOGIKA UPLOAD: Langsung ke public/storage/packages
         if ($request->hasFile('cover_image')) {
-            $path = $request->file('cover_image')->store('packages', 'public');
-            $validated['cover_image'] = $path;
+            $file = $request->file('cover_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            
+            // Pindahkan file ke folder public/storage/packages
+            $file->move(public_path('storage/packages'), $filename);
+            
+            // Simpan path relatif ke database agar pemanggilan asset() konsisten
+            $validated['cover_image'] = 'packages/' . $filename;
         }
         
-        // Simpan data paket
         Package::create($validated);
         
         return redirect()->route('admin.packages.index')
-            ->with('success', 'Paket fotografi baru berhasil ditambahkan.');
+            ->with('success', 'Paket fotografi Fokuskesini berhasil ditambahkan!');
     }
 
-    /**
-     * Menampilkan formulir ubah paket.
-     */
     public function edit(Package $package)
     {
         return view('admin.packages.edit', compact('package'));
     }
 
-    /**
-     * Memperbarui data paket di database.
-     */
     public function update(Request $request, Package $package)
     {
-        // ==================== PERBAIKAN UTAMA DI SINI ====================
-        
-        // 1. Validasi data - FIX VALIDASI CATEGORY DAN IS_ACTIVE
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'required|in:WEDDING,GRADUATION,ENGAGEMENT,MATERNITY', // PERBAIKAN 1: Validasi ketat dengan 'in'
+            'category' => 'required|in:WEDDING,GRADUATION,ENGAGEMENT,MATERNITY',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string', 
             'duration_hours' => 'required|integer|min:1',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'features' => 'nullable|string',
-            'is_active' => 'nullable' // PERBAIKAN 2: Ubah jadi nullable, nanti kita proses manual
+            'is_active' => 'nullable'
         ]);
         
-        // PERBAIKAN 3: Konversi checkbox is_active menjadi boolean
-        // Checkbox HTML: jika dicentang = 'on', jika tidak dicentang = null/tidak ada
         $validated['is_active'] = $request->has('is_active') ? true : false;
         
-        // PERBAIKAN 4: Pastikan category tidak null setelah validasi
-        if (!isset($validated['category']) || empty($validated['category'])) {
-            return back()->withErrors(['category' => 'Kategori harus dipilih'])->withInput();
-        }
-        
-        // 2. Olah Fitur (dari textarea menjadi array)
         if ($request->has('features') && !empty($request->features)) {
-            $features = array_filter(explode("\n", $request->features), function($line) {
+            $validated['features'] = array_filter(explode("\n", $request->features), function($line) {
                 return trim($line) !== '';
             });
-            $validated['features'] = $features;
         } else {
             $validated['features'] = null;
         }
         
-        // 3. Olah Gambar (hapus yang lama jika ganti yang baru)
+        // 🛠️ LOGIKA UPDATE: Hapus yang lama, simpan yang baru
         if ($request->hasFile('cover_image')) {
-            // Hapus gambar lama jika ada
-            if ($package->cover_image && Storage::disk('public')->exists($package->cover_image)) {
-                Storage::disk('public')->delete($package->cover_image);
+            // Hapus file lama di folder public kalau ada
+            if ($package->cover_image) {
+                $oldPath = public_path('storage/' . $package->cover_image);
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
             }
-            // Simpan gambar baru
-            $validated['cover_image'] = $request->file('cover_image')->store('packages', 'public');
+
+            $file = $request->file('cover_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('storage/packages'), $filename);
+            $validated['cover_image'] = 'packages/' . $filename;
         } else {
-            // Pertahankan gambar lama
+            // Tetap pakai gambar lama kalau tidak upload baru
             $validated['cover_image'] = $package->cover_image;
         }
         
-        // PERBAIKAN 5: Debugging - lihat data sebelum diupdate
-        // dd($validated); // Uncomment jika ingin lihat data
-        
-        // 4. Update ke Database
         $package->update($validated);
         
-        // 5. Redirect dengan pesan sukses
         return redirect()->route('admin.packages.index')
-            ->with('success', 'Perubahan data paket berhasil disimpan.');
+            ->with('success', 'Paket berhasil diperbarui.');
     }
 
-    /**
-     * Menghapus paket secara permanen.
-     */
     public function destroy(Package $package)
     {
+        // Hapus file di folder public saat paket dihapus
         if ($package->cover_image) {
-            Storage::disk('public')->delete($package->cover_image);
+            $path = public_path('storage/' . $package->cover_image);
+            if (File::exists($path)) {
+                File::delete($path);
+            }
         }
         
         $package->delete();
-        
         return redirect()->route('admin.packages.index')
-            ->with('success', 'Paket fotografi berhasil dihapus.');
+            ->with('success', 'Paket berhasil dihapus secara permanen.');
     }
 }

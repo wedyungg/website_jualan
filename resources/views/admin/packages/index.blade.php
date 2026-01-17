@@ -46,30 +46,47 @@
                     <tbody>
                         @forelse($packages as $package)
                         <tr>
+                            {{-- 1. Kolom ID --}}
                             <td class="align-middle pl-4 text-muted small">#{{ $package->id }}</td>
+                            
+                            {{-- 2. Kolom Cover --}}
                             <td class="align-middle">
-    @if($package->cover_image)
-        <?php
-        // Hapus 'packages/' dari awal string jika ada
-        $imagePath = $package->cover_image;
-        if (strpos($imagePath, 'packages/') === 0) {
-            $imagePath = substr($imagePath, 9); // Hapus 'packages/'
-        }
-        ?>
-        
-        <!-- DEBUG: Tampilkan info -->
-        <small class="text-muted d-block">{{ $imagePath }}</small>
-        
-        <!-- Akses langsung ke public/packages/ -->
-        <img src="{{ asset('packages/' . $imagePath) }}" 
-             alt="{{ $package->name }}" 
-             style="width: 70px; height: 50px; object-fit: cover; border: 1px solid #00f;">
-    @else
-        <div style="width: 70px; height: 50px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; border: 1px solid #eee;">
-            <i class="fas fa-camera text-muted small"></i>
-        </div>
-    @endif
-</td>
+                                @if($package->cover_image)
+                                    <img src="{{ asset('storage/' . $package->cover_image) }}" 
+                                         alt="{{ $package->name }}" 
+                                         style="width: 70px; height: 50px; object-fit: cover; border: 1px solid #eee;">
+                                @else
+                                    <div style="width: 70px; height: 50px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; border: 1px solid #eee;">
+                                        <i class="fas fa-camera text-muted small"></i>
+                                    </div>
+                                @endif
+                            </td>
+
+                            {{-- 3. Kolom Package Name --}}
+                            <td class="align-middle font-weight-bold text-uppercase small" style="letter-spacing: 1px;">
+                                {{ $package->name }}
+                            </td>
+
+                            {{-- 4. Kolom Category --}}
+                            <td class="align-middle text-center">
+                                <span class="small text-muted font-weight-bold">{{ $package->category }}</span>
+                            </td>
+
+                            {{-- 5. Kolom Price --}}
+                            <td class="align-middle text-center font-weight-bold">
+                                Rp {{ number_format($package->price, 0, ',', '.') }}
+                            </td>
+
+                            {{-- 6. Kolom Status --}}
+                            <td class="align-middle text-center">
+                                @if($package->is_active)
+                                    <span class="badge badge-success px-2 py-1" style="border-radius: 0; font-size: 0.6rem; letter-spacing: 1px;">ACTIVE</span>
+                                @else
+                                    <span class="badge badge-danger px-2 py-1" style="border-radius: 0; font-size: 0.6rem; letter-spacing: 1px;">INACTIVE</span>
+                                @endif
+                            </td>
+
+                            {{-- 7. Kolom Actions --}}
                             <td class="align-middle pr-4 text-right">
                                 <div class="btn-group">
                                     <a href="{{ route('admin.packages.edit', $package) }}" class="btn btn-sm btn-outline-dark" style="border-radius: 0;">
@@ -118,6 +135,4 @@
         }, 4000);
     });
 </script>
-
-
 @endsection
